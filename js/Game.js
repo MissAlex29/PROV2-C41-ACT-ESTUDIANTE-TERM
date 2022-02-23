@@ -9,6 +9,7 @@ class Game {
     //Encabezado para cada jugador 
     this.leader1 = createElement("h2");
     this.leader2 = createElement("h2");
+    this.playerMoving = false; 
   }
   //Función para obtener estado de juego de base de datos 
   getState(){
@@ -156,6 +157,7 @@ class Game {
       image(track, 0, -height * 5, width, height * 6);
       //Mostrar vida. 
       this.showLife();
+      this.showFuelBar();
       this.showLeaderboard();
       
       var index = 0; 
@@ -182,7 +184,14 @@ class Game {
           camera.position.x = cars[index - 1].position.x;
           camera.position.y = cars[index - 1].position.y;      
         }
-      }      
+      }    
+      
+      //Método para avanzar automaticamente 
+      if (this.playerMoving) {
+        player.positionY += 5;
+        player.update();
+      }
+      
       //Llamamos función de controles 
       this.handlePlayerControls();
 
@@ -227,6 +236,18 @@ class Game {
     rect(width / 2 - 100, height - player.positionY - 300, 185, 20);
     fill("#f50057");
     rect(width / 2 - 100, height - player.positionY - 300, 185, 20);
+    noStroke();
+    pop();
+  }
+
+  //Método para la barra de combustible 
+  showFuelBar() {
+    push();
+    image(fuelImage, width / 2 - 130, height - player.positionY - 350, 20, 20);
+    fill("white");
+    rect(width / 2 - 100, height - player.positionY - 350, 185, 20);
+    fill("#ffc400");
+    rect(width / 2 - 100, height - player.positionY - 350, player.fuel, 20);
     noStroke();
     pop();
   }
@@ -291,6 +312,8 @@ class Game {
   handlePlayerControls() {
     // manejando eventos de teclado
     if (keyIsDown(UP_ARROW)) {
+      //en GAME.JS 
+      this.playerMoving = true;
       player.positionY += 10;
       //Actualizamos posición del jugador en base de datos 
       player.update();
@@ -317,6 +340,17 @@ class Game {
       //el evento
       collected.remove();
     });
+    //DENTRO DEL MÉTODO HANDLEFUEL-GAME.JS
+    // Reducir el combustible del auto
+    if (player.fuel > 0 && this.playerMoving) {
+      //Se puede modificar 0.5,0.7
+      player.fuel -= 0.3;
+    }
+    //Si se acaba el combustible = GAMEOVER
+    if (player.fuel <= 0) {
+      gameState = 2;
+      this.gameOver();
+    }
   }
 
   //Metodo par comprobar la colisión de las monedas 
@@ -340,4 +374,17 @@ class Game {
       confirmButtonText: "Ok"
     });
   }
+
+  //Método para sw de fin de juego
+  gameOver() {
+    swal({
+      title: `Fin del juego`,
+      text: "Ups perdiste la carrera!!!",
+      imageUrl:
+        "https://cdn.shopify.com/s/files/1/1061/1924/products/Thumbs_Down_Sign_Emoji_Icon_ios10_grande.png",
+      imageSize: "100x100",
+      confirmButtonText: "Gracias por jugar"
+    });
+  }
+
 }
